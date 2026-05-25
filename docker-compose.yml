@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres_dwh:
+    image: postgres:15
+    container_name: dwh_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ecom_dwh
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    container_name: landing_minio
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: bi_metabase
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ecom_dwh
+      MB_DB_PORT: 5432
+      MB_DB_USER: admin
+      MB_DB_PASS: password
+      MB_DB_HOST: postgres_dwh
+    depends_on:
+      - postgres_dwh
+
+volumes:
+  pg_data:
+  minio_data:
