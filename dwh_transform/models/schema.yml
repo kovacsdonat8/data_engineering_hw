@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: public
+    database: ecom_dwh
+    schema: public
+    tables:
+      - name: raw_orders
+      - name: raw_products
+      - name: raw_reviews
