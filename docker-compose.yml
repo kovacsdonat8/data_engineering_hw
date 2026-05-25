@@ -41,6 +41,34 @@ services:
     depends_on:
       - postgres_dwh
 
+  airflow:
+    image: apache/airflow:2.8.1-python3.10
+    container_name: airflow_orchestrator
+    environment:
+      AIRFLOW__CORE__EXECUTOR: SequentialExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/airflow.db
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      _PIP_ADDITIONAL_REQUIREMENTS: "pandas requests boto3 sqlalchemy psycopg2-binary dbt-postgres python-dotenv"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ENDPOINT: "http://minio:9000"
+      POSTGRES_HOST: "postgres_dwh"
+    volumes:
+      - .:/opt/airflow/project
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "airflow db migrate &&
+      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com &&
+      airflow webserver -D &&
+      airflow scheduler"
+    depends_on:
+      - postgres_dwh
+      - minio
+
 volumes:
   pg_data:
   minio_data:
